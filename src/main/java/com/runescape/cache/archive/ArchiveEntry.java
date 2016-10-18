@@ -1,6 +1,6 @@
 package com.runescape.cache.archive;
 
-import java.util.Arrays;
+import com.runescape.io.ReadOnlyBuffer;
 
 /**
  * Represents a file/entry stored in an {@link Archive} container.
@@ -17,7 +17,7 @@ public final class ArchiveEntry {
 	/**
 	 * The entry contents may be either compressed or decompressed.
 	 */
-	private final byte[] buffer;
+	private final ReadOnlyBuffer buffer;
 	
 	/**
 	 * Constructs a new {@link ArchiveEntry} with the given parameters.
@@ -29,9 +29,9 @@ public final class ArchiveEntry {
 	 */
 	public ArchiveEntry(int identifier, byte[] buffer) {
 		this.identifier = identifier;
-		this.buffer = buffer;
+		this.buffer = ReadOnlyBuffer.wrap(buffer);
 	}
-	
+
 	/**
 	 * Gets the unique identifier.
 	 * 
@@ -40,38 +40,43 @@ public final class ArchiveEntry {
 	public int getIdentifier() {
 		return identifier;
 	}
-	
+
 	/**
 	 * Gets the contents of this entry.
 	 * 
 	 * @return the contents.
 	 */
-	public byte[] getBuffer() {
+	public ReadOnlyBuffer getBuffer() {
 		return buffer;
 	}
-	
+
+	public byte[] getBytes() {
+		return buffer.getBytes();
+	}
+
 	@Override
 	public String toString() {
 		return String.valueOf(identifier);
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + buffer.hashCode();
+		result = prime * result + identifier;
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof ArchiveEntry)) {
 			return false;
 		}
 		ArchiveEntry other = (ArchiveEntry) obj;
-		
-		boolean bufferEquality = Arrays.equals(buffer, other.buffer);
+
+		boolean bufferEquality = buffer.equals(other.buffer);
 		return bufferEquality && identifier == other.identifier;
 	}
-	
-	@Override
-	public int hashCode() {
-		int result = 17;
-		result = 31 * result + identifier;
-		result = 31 * result + Arrays.hashCode(buffer);
-		return result;
-	}
-	
+
 }

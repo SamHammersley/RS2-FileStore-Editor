@@ -3,7 +3,6 @@ package com.runescape.cache.archive;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class ArchiveCodec {
 		}
 
 		int entryCount = buffer.getUnsignedShort();
-		int position = buffer.getReadIndex() + (entryCount * ENTRY_HEADER_SIZE);
+		int dataIndex = buffer.getReadIndex() + (entryCount * ENTRY_HEADER_SIZE);
 		Set<ArchiveEntry> entries = new HashSet<>(entryCount);
 
 		for (int entryIndex = 0; entryIndex < entryCount; entryIndex++) {
@@ -49,8 +48,8 @@ public class ArchiveCodec {
 			int compressedSize = buffer.getUnsigned24BitInt();
 			int entrySize = archiveCompressed ? size : compressedSize;
 
-			byte[] entryBuffer = Arrays.copyOfRange(buffer.getBytes(), position, position += entrySize);
-			entries.add(new ArchiveEntry(identifier, archiveCompressed ? entryBuffer : Bzip2Util.unbzip2(entryBuffer)));
+			byte[] entryDataBuffer = buffer.getBytes(dataIndex, dataIndex += entrySize);
+			entries.add(new ArchiveEntry(identifier, archiveCompressed ? entryDataBuffer : Bzip2Util.unbzip2(entryDataBuffer)));
 		}
 		
 		return new Archive(entries, archiveCompressed, archiveSize, compressedArchiveSize);
@@ -75,25 +74,27 @@ public class ArchiveCodec {
 			
 			out.writeShort(entries.size());
 			
+			boolean isCompressed = archive.isCompressed();
+			
 			//TODO: better solution for compressing entries twice.
-			Map<ArchiveEntry, byte[]> compressedEntries = new HashMap<>();
+			Map<Integer, byte[]> compressedEntries = new HashMap<>();
 			for (ArchiveEntry entry : archive.getEntries()) {
 				out.writeInt(entry.getIdentifier());
 				
-				byte[] entryBuffer = entry.getBuffer();
+				byte[] entryBuffer = entry.getBuffer().getBytes();
 				out.writeShort(entryBuffer.length);
 				out.writeByte(entryBuffer.length & 0xFF);
 				
 				byte[] compressed = Bzip2Util.bzip2(entryBuffer);
-				compressedEntries.put(entry, compressed);
-				int compressedSize = archive.isCompressed() ? entryBuffer.length : compressed.length;
+				compressedEntries.put(entry.getIdentifier(), compressed);
+				int compressedSize = isCompressed ? entryBuffer.length : compressed.length;
 
 				out.writeShort(compressedSize >> 8);
 				out.writeByte(compressedSize & 0xFF);
 			}
 			
 			for (ArchiveEntry entry : entries) {
-				out.write(archive.isCompressed() ? entry.getBuffer() : compressedEntries.get(entry));
+				out.write(isCompressed ? entry.getBuffer().getBytes() : compressedEntries.get(entry.getIdentifier()));
 			}
 			return byteOut.toByteArray();
 		}
