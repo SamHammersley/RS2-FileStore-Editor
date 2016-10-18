@@ -35,7 +35,27 @@ public final class ReadOnlyBuffer {
 	 * @return the bytes.
 	 */
 	public byte[] getBytes() {
-		return bytes;
+		return getBytes(0, bytes.length);
+	}
+	
+	public byte[] getBytes(int from, int to) {
+		if (from > to) {
+			throw new IllegalArgumentException("from > to");
+		}
+		readIndex += (to - from);
+		return Arrays.copyOfRange(bytes, from, to);
+	}
+	
+	public byte[] getUnsignedBytes(int length) {
+		return Arrays.copyOfRange(bytes, readIndex, readIndex += length);
+	}
+	
+	public int[] getUnsignedShorts(int length) {
+		int[] shorts = new int[length];
+		for (int index = 0; index < length; index++) {
+			shorts[index] = (short) ((getUnsigned() << 8) | getUnsigned());
+		}
+		return shorts;
 	}
 	
 	/**
@@ -51,7 +71,7 @@ public final class ReadOnlyBuffer {
 	 * @return the remaining bytes to be read.
 	 */
 	public byte[] getRemaining() {
-		return Arrays.copyOfRange(bytes, readIndex, bytes.length);
+		return getBytes(readIndex, bytes.length);
 	}
 	
 	/**
@@ -68,7 +88,7 @@ public final class ReadOnlyBuffer {
 	 * 
 	 * @return an unsigned byte.
 	 */
-	public int getUnsignedByte() {
+	public int getUnsigned() {
 		return bytes[readIndex++] & 0xff;
 	}
 
@@ -123,6 +143,15 @@ public final class ReadOnlyBuffer {
 	 */
 	public static ReadOnlyBuffer wrap(byte[] buffer) {
 		return new ReadOnlyBuffer(buffer);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(bytes);
+		result = prime * result + readIndex;
+		return result;
 	}
 	
 	@Override

@@ -1,5 +1,6 @@
 package com.runescape;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,13 +20,13 @@ public class Test {
 		Archive archive = ArchiveCodec.decode(buffer);
 
 		MessageDigest md = MessageDigest.getInstance("MD5");
-		archive.getEntries().stream().map(ArchiveEntry::getBuffer).forEach(md::update);
+		archive.getEntries().stream().map(ArchiveEntry::getBytes).forEach(md::update);
 		System.out.println(encodeHex(md.digest()));
 		
-		/*byte[] reencode = ArchiveCodec.encode(archive);
+		byte[] reencode = ArchiveCodec.encode(archive);
 		try (FileOutputStream fos = new FileOutputStream("archive.jag")) {
 			fos.write(reencode);
-		}*/
+		}
 	}
 
 	public static String encodeHex(byte[] bytes) {
