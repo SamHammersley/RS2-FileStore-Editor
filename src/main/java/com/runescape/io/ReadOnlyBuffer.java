@@ -30,6 +30,28 @@ public final class ReadOnlyBuffer {
 	}
 	
 	/**
+	 * Checks whether this buffer has the specified number of bytes to be read (available).
+	 *
+	 * @param bytes the number of bytes available
+	 * @return {@code true} if there are >= bytes in this buffer
+	 */
+	public boolean hasRemainingBytes(int bytes) {
+		return readIndex <= (this.bytes.length - bytes);
+	}
+	
+	/**
+	 * Sets {@link #readIndex} to the given position.
+	 *
+	 * @param position the position to set {@link #readIndex} to.
+	 */
+	public void seek(int position) {
+		if (position >= bytes.length) {
+			throw new IndexOutOfBoundsException("position >= bytes.length, attempted to seek too far");
+		}
+		this.readIndex = position;
+	}
+	
+	/**
 	 * Gets the bytes in this buffer.
 	 * 
 	 * @return the bytes.
