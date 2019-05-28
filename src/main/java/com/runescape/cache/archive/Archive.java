@@ -1,5 +1,6 @@
 package com.runescape.cache.archive;
 
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -14,9 +15,9 @@ import java.util.Set;
 public final class Archive {
 	
 	/**
-	 * A {@link Set} of {@link ArchiveEntry}s that make up this archive.
+	 * A {@link LinkedHashSet} of {@link ArchiveEntry}s that make up this archive.
 	 */
-	private final Set<ArchiveEntry> entries;
+	private final LinkedHashSet<ArchiveEntry> entries;
 
 	/**
 	 * Denotes whether the archive is compress (as a whole).
@@ -39,7 +40,7 @@ public final class Archive {
 	 */
 	private boolean changed;
 	
-	public Archive(Set<ArchiveEntry> entries, boolean archiveCompressed, int size, int compressedSize) {
+	public Archive(LinkedHashSet<ArchiveEntry> entries, boolean archiveCompressed, int size, int compressedSize) {
 		this.entries = entries;
 		this.archiveCompressed = archiveCompressed;
 		this.size = size;

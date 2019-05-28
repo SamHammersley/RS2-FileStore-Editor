@@ -1,8 +1,6 @@
 package com.runescape.io.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
@@ -13,7 +11,7 @@ import com.google.common.primitives.Bytes;
 
 public final class Bzip2Util {
 	
-	private static final byte[] BZIP2_HEADER = { 'B', 'Z', 'h', '1' };
+	private static final byte[] BZIP2_HEADER = { 'B', 'Z', 'h', '9' };
 	
 	/** 
 	 * Bzip2 header size in bytes.
@@ -34,13 +32,14 @@ public final class Bzip2Util {
 	}
 	
 	public static byte[] bzip2(final byte[] input) throws IOException {
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-				BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(out)) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		try (BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(out)) {
 			bz2Out.write(input);
-			bz2Out.finish();
-			byte[] output = out.toByteArray();
-			return Arrays.copyOfRange(output, BZIP2_HEADER_SIZE, output.length);
 		}
+		
+		byte[] output = out.toByteArray();
+		return Arrays.copyOfRange(output, BZIP2_HEADER_SIZE, output.length);
 	}
 
 	private Bzip2Util() {

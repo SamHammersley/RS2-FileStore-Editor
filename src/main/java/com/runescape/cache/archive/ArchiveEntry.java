@@ -23,8 +23,6 @@ public final class ArchiveEntry {
 	 * Constructs a new {@link ArchiveEntry} with the given parameters.
 	 * 
 	 * @param identifier the unique identifier of the entry.
-	 * @param compressedSize the compressed size of the entry.
-	 * @param size the decompressed size of the entry.
 	 * @param buffer the contents of the entry.
 	 */
 	public ArchiveEntry(int identifier, byte[] buffer) {

@@ -3,10 +3,7 @@ package com.runescape.cache.archive;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.runescape.io.ReadOnlyBuffer;
 import com.runescape.io.util.Bzip2Util;
@@ -26,29 +23,29 @@ public class ArchiveCodec {
 	 * @throws IOException 
 	 */
 	public static Archive decode(byte[] archiveBuffer) throws IOException {
-		ReadOnlyBuffer buffer = ReadOnlyBuffer.wrap(archiveBuffer);
+		ReadOnlyBuffer indexBuffer = ReadOnlyBuffer.wrap(archiveBuffer);
 		
-		int archiveSize = buffer.getUnsigned24BitInt();
-		int compressedArchiveSize = buffer.getUnsigned24BitInt();
-		
+		int archiveSize = indexBuffer.getUnsigned24BitInt();
+		int compressedArchiveSize = indexBuffer.getUnsigned24BitInt();
+
 		boolean archiveCompressed = compressedArchiveSize != archiveSize;
-		
+
 		if (archiveCompressed) {
-			byte[] decompressedArchive = Bzip2Util.unbzip2(buffer.getRemaining());
-			buffer = ReadOnlyBuffer.wrap(decompressedArchive);
+			indexBuffer = ReadOnlyBuffer.wrap(Bzip2Util.unbzip2(indexBuffer.getRemaining()));
 		}
 
-		int entryCount = buffer.getUnsignedShort();
-		int dataIndex = buffer.getReadIndex() + (entryCount * ENTRY_HEADER_SIZE);
-		Set<ArchiveEntry> entries = new HashSet<>(entryCount);
+		int entryCount = indexBuffer.getUnsignedShort();
+		
+		ReadOnlyBuffer dataBuffer = indexBuffer.split(indexBuffer.getReadIndex() + (entryCount * ENTRY_HEADER_SIZE));
+		LinkedHashSet<ArchiveEntry> entries = new LinkedHashSet<>(entryCount);
 
 		for (int entryIndex = 0; entryIndex < entryCount; entryIndex++) {
-			int identifier = buffer.getUnsignedInt();
-			int size = buffer.getUnsigned24BitInt();
-			int compressedSize = buffer.getUnsigned24BitInt();
+			int identifier = indexBuffer.getUnsignedInt();
+			int size = indexBuffer.getUnsigned24BitInt();
+			int compressedSize = indexBuffer.getUnsigned24BitInt();
 			int entrySize = archiveCompressed ? size : compressedSize;
-
-			byte[] entryDataBuffer = buffer.getBytes(dataIndex, dataIndex += entrySize);
+			
+			byte[] entryDataBuffer = dataBuffer.getBytes(entrySize);
 			entries.add(new ArchiveEntry(identifier, archiveCompressed ? entryDataBuffer : Bzip2Util.unbzip2(entryDataBuffer)));
 		}
 		
@@ -76,18 +73,22 @@ public class ArchiveCodec {
 			
 			boolean isCompressed = archive.isCompressed();
 			
-			//TODO: better solution for compressing entries twice.
 			Map<Integer, byte[]> compressedEntries = new HashMap<>();
-			for (ArchiveEntry entry : archive.getEntries()) {
+			
+			for (ArchiveEntry entry : entries) {
 				out.writeInt(entry.getIdentifier());
 				
 				byte[] entryBuffer = entry.getBuffer().getBytes();
-				out.writeShort(entryBuffer.length);
+				out.writeShort(entryBuffer.length >> 8);
 				out.writeByte(entryBuffer.length & 0xFF);
 				
-				byte[] compressed = Bzip2Util.bzip2(entryBuffer);
-				compressedEntries.put(entry.getIdentifier(), compressed);
-				int compressedSize = isCompressed ? entryBuffer.length : compressed.length;
+				int compressedSize = entryBuffer.length;
+				if (!isCompressed) {
+					byte[] compressed = Bzip2Util.bzip2(entryBuffer);
+					compressedEntries.put(entry.getIdentifier(), compressed);
+					
+					compressedSize = compressed.length;
+				}
 
 				out.writeShort(compressedSize >> 8);
 				out.writeByte(compressedSize & 0xFF);

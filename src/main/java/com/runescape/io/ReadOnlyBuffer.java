@@ -35,18 +35,20 @@ public final class ReadOnlyBuffer {
 	 * @return the bytes.
 	 */
 	public byte[] getBytes() {
-		return getBytes(0, bytes.length);
+		return Arrays.copyOf(bytes, bytes.length);
 	}
 	
-	public byte[] getBytes(int from, int to) {
-		if (from > to) {
-			throw new IllegalArgumentException("from > to");
-		}
-		readIndex += (to - from);
-		return Arrays.copyOfRange(bytes, from, to);
+	public ReadOnlyBuffer split(int offset) {
+		return new ReadOnlyBuffer(Arrays.copyOfRange(bytes, offset, bytes.length));
 	}
 	
-	public byte[] getUnsignedBytes(int length) {
+	/**
+	 * Gets the number of bytes specified and progresses the read pointer.
+	 *
+	 * @param length the amount of bytes to get.
+	 * @return a byte array of the next {@code length} bytes.
+	 */
+	public byte[] getBytes(int length) {
 		return Arrays.copyOfRange(bytes, readIndex, readIndex += length);
 	}
 	
@@ -71,7 +73,7 @@ public final class ReadOnlyBuffer {
 	 * @return the remaining bytes to be read.
 	 */
 	public byte[] getRemaining() {
-		return getBytes(readIndex, bytes.length);
+		return Arrays.copyOfRange(bytes, readIndex = bytes.length, bytes.length);
 	}
 	
 	/**
