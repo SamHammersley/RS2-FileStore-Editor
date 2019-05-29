@@ -67,28 +67,35 @@ public class Index implements Iterable<byte[]> {
 			
 			for (int fileId = 0; indexBuffer.hasRemainingBytes(INDEX_ENTRY_SIZE); fileId++) {
 				final int fileSize = indexBuffer.getUnsigned24BitInt();
-				final int dataBlockId = indexBuffer.getUnsigned24BitInt();
+				final int initialChunkId = indexBuffer.getUnsigned24BitInt();
 				
-				if (fileSize == 0 || dataBlockId == 0) {
+				if (fileSize == 0 || initialChunkId == 0) {
 					continue;
 				}
 				
 				byte[] entry = new byte[fileSize];
 				
-				for (int partId = 0, currentPartIndex = dataBlockId; partId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; partId++) {
-					dataBuffer.seek(currentPartIndex * DataChunk.DATA_CHUNK_SIZE);
+				for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
+					dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
 					
-					DataChunk dataEntryPart = DataChunk.parse(dataBuffer, fileSize);
-					final int nextPartIndex = dataEntryPart.getNextChunkId();
+					DataChunk dataChunk = DataChunk.parse(dataBuffer, fileSize);
 					
-					if (!dataEntryPart.verify(fileId, partId) || nextPartIndex < 0
-							|| nextPartIndex > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
-						break;
+					final int nextChunkId = dataChunk.getNextChunkId();
+					if (!dataChunk.verify(fileId, chunkId)) {
+						throw new RuntimeException("Invalid Index format! Inconsistent fileId or chunkId");
+					}
+					if (nextChunkId < 0 || nextChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
+						throw new RuntimeException("Invalid Index format! Invalid nextChunkId");
 					}
 					
-					System.arraycopy(dataEntryPart.getData(), 0, entry, partId * DataChunk.DATA_CHUNK_BODY_SIZE, dataEntryPart.getData().length);
+					System.arraycopy(dataChunk.getData(), 0, entry, chunkId * DataChunk.DATA_CHUNK_BODY_SIZE, dataChunk.getData().length);
 					
-					currentPartIndex = nextPartIndex;
+					if (nextChunkId > 0) {
+						currentChunkIndex = nextChunkId;
+						
+					} else {
+						break;
+					}
 				}
 				
 				entries.add(entry);
