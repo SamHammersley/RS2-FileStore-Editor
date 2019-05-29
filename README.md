@@ -1,4 +1,6 @@
-# RuneScape 2 FileStore Editor
+# RuneScape 2 FileStore Editor 
+[![Build Status](https://travis-ci.org/SamHammersley/RS2-FileStore-Editor.svg?branch=master)](https://travis-ci.org/SamHammersley/RS2-FileStore-Editor)
+
 Software to view/edit the cache or local file store of older revisions of RuneScape 2.
 
 ## Format
