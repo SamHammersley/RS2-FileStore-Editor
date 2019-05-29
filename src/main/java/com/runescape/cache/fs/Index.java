@@ -53,13 +53,13 @@ public class Index implements Iterable<byte[]> {
 	}
 	
 	/**
-	 * Parses an index from the given path and buffer (which contains the entry data for the index).
+	 * Decodes an index from the given path and buffer (which contains the raw data for files in this index).
 	 *
 	 * @param indexPath the {@link Path} to the index file.
 	 * @param dataBuffer the buffer containing all entry data.
 	 * @return an instance of {@link Index}.
 	 */
-	public static Index parse(Path indexPath, ReadOnlyBuffer dataBuffer) {
+	public static Index decode(Path indexPath, ReadOnlyBuffer dataBuffer) {
 		final List<byte[]> entries = new ArrayList<>();
 		
 		try {
@@ -86,13 +86,13 @@ public class Index implements Iterable<byte[]> {
 					if (nextChunkId == 0) {
 						break;
 					}
-					
+
 					currentChunkIndex = nextChunkId;
 				}
-				
+
 				entries.add(entry);
 			}
-			
+
 			return new Index(entries);
 			
 		} catch (IOException e) {
