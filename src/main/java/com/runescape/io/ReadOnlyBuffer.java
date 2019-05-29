@@ -1,5 +1,8 @@
 package com.runescape.io;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -167,6 +170,24 @@ public final class ReadOnlyBuffer {
 	 */
 	public static ReadOnlyBuffer wrap(byte[] buffer) {
 		return new ReadOnlyBuffer(buffer);
+	}
+	
+	/**
+	 * Takes the given path and attempts to read it into an array of bytes.
+	 *
+	 * @param path the path to read.
+	 * @return a byte array of the file read.
+	 */
+	public static ReadOnlyBuffer fromPath(Path path) {
+		byte[] buffer;
+		
+		try {
+			buffer = Files.readAllBytes(path);
+		} catch(IOException e) {
+			throw new RuntimeException("Failed to read " + path.toString(), e);
+		}
+		
+		return ReadOnlyBuffer.wrap(buffer);
 	}
 
 	@Override

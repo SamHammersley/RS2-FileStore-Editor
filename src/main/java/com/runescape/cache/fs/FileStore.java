@@ -49,8 +49,12 @@ public final class FileStore {
 		
 		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.wrap(Files.readAllBytes(dataPath));
 		
-		Stream<Path> indexFiles = Files.list(cacheDirectory).filter(p -> p.toString().contains("idx"));
-		return new FileStore(indexFiles.map(p -> Index.decode(p, dataBuffer)).toArray(Index[]::new));
+		Stream<ReadOnlyBuffer> indexFiles = Files
+				.list(cacheDirectory)
+				.filter(p -> p.toString().contains("idx"))
+				.map(ReadOnlyBuffer::fromPath);
+		
+		return new FileStore(indexFiles.map(indexBuffer -> Index.decode(indexBuffer, dataBuffer)).toArray(Index[]::new));
 	}
 	
 }

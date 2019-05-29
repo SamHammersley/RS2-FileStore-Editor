@@ -2,9 +2,6 @@ package com.runescape.cache.fs;
 
 import com.runescape.io.ReadOnlyBuffer;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -55,48 +52,37 @@ public class Index implements Iterable<byte[]> {
 	/**
 	 * Decodes an index from the given path and buffer (which contains the raw data for files in this index).
 	 *
-	 * @param indexPath the {@link Path} to the index file.
-	 * @param dataBuffer the buffer containing all entry data.
+	 * @param indexBuffer the buffer containing index data.
+	 * @param dataBuffer  the buffer containing all entry data.
 	 * @return an instance of {@link Index}.
 	 */
-	public static Index decode(Path indexPath, ReadOnlyBuffer dataBuffer) {
+	public static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
 		final List<byte[]> entries = new ArrayList<>();
 		
-		try {
-			ReadOnlyBuffer indexBuffer = ReadOnlyBuffer.wrap(Files.readAllBytes(indexPath));
+		for (int fileId = 0; indexBuffer.hasRemainingBytes(INDEX_ENTRY_SIZE); fileId++) {
+			final int fileSize = indexBuffer.getUnsigned24BitInt();
+			final int initialChunkId = indexBuffer.getUnsigned24BitInt();
 			
-			for (int fileId = 0; indexBuffer.hasRemainingBytes(INDEX_ENTRY_SIZE); fileId++) {
-				final int fileSize = indexBuffer.getUnsigned24BitInt();
-				final int initialChunkId = indexBuffer.getUnsigned24BitInt();
+			byte[] entry = new byte[fileSize];
+			
+			for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
+				dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
 				
-				if (fileSize == 0 || initialChunkId == 0) {
-					continue;
+				DataChunk dataChunk = DataChunk.decode(dataBuffer, fileSize, fileId, chunkId);
+				
+				System.arraycopy(dataChunk.getData(), 0, entry, chunkId * DataChunk.DATA_CHUNK_BODY_SIZE, dataChunk.getData().length);
+				
+				final int nextChunkId = dataChunk.getNextChunkId();
+				if (nextChunkId == 0) {
+					break;
 				}
 				
-				byte[] entry = new byte[fileSize];
-				
-				for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
-					dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
-					
-					DataChunk dataChunk = DataChunk.decode(dataBuffer, fileSize, fileId, chunkId);
-					
-					System.arraycopy(dataChunk.getData(), 0, entry, chunkId * DataChunk.DATA_CHUNK_BODY_SIZE, dataChunk.getData().length);
-					
-					final int nextChunkId = dataChunk.getNextChunkId();
-					if (nextChunkId == 0) {
-						break;
-					}
-
-					currentChunkIndex = nextChunkId;
-				}
-
-				entries.add(entry);
+				currentChunkIndex = nextChunkId;
 			}
-
-			return new Index(entries);
 			
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to decode " + indexPath + " as an Index", e);
+			entries.add(entry);
 		}
+		
+		return new Index(entries);
 	}
 }
