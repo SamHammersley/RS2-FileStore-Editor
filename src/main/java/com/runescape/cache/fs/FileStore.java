@@ -45,9 +45,6 @@ public final class FileStore {
 		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.wrap(Files.readAllBytes(dataPath));
 		
 		Stream<Path> indexFiles = Files.list(cacheDirectory).filter(p -> p.toString().contains("idx"));
-		if (!indexFiles.findAny().isPresent()) {
-			throw new RuntimeException("Invalid directory, no index files present!");
-		}
 		return new FileStore(indexFiles.map(p -> Index.parse(p, dataBuffer)).toArray(Index[]::new));
 	}
 	
