@@ -78,24 +78,16 @@ public class Index implements Iterable<byte[]> {
 				for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
 					dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
 					
-					DataChunk dataChunk = DataChunk.parse(dataBuffer, fileSize);
-					
-					final int nextChunkId = dataChunk.getNextChunkId();
-					if (!dataChunk.verify(fileId, chunkId)) {
-						throw new RuntimeException("Invalid Index format! Inconsistent fileId or chunkId");
-					}
-					if (nextChunkId < 0 || nextChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
-						throw new RuntimeException("Invalid Index format! Invalid nextChunkId");
-					}
+					DataChunk dataChunk = DataChunk.decode(dataBuffer, fileSize, fileId, chunkId);
 					
 					System.arraycopy(dataChunk.getData(), 0, entry, chunkId * DataChunk.DATA_CHUNK_BODY_SIZE, dataChunk.getData().length);
 					
-					if (nextChunkId > 0) {
-						currentChunkIndex = nextChunkId;
-						
-					} else {
+					final int nextChunkId = dataChunk.getNextChunkId();
+					if (nextChunkId == 0) {
 						break;
 					}
+					
+					currentChunkIndex = nextChunkId;
 				}
 				
 				entries.add(entry);
@@ -104,7 +96,7 @@ public class Index implements Iterable<byte[]> {
 			return new Index(entries);
 			
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to parse " + indexPath + " as an Index", e);
+			throw new RuntimeException("Failed to decode " + indexPath + " as an Index", e);
 		}
 	}
 }

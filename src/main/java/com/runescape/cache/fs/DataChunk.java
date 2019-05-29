@@ -55,17 +55,6 @@ public final class DataChunk {
 		this.data = data;
 	}
 	
-	/**
-	 * Checks if the fileId and chunkId match the given ids.
-	 *
-	 * @param fileId the file id to check with the file id of this chunk.
-	 * @param chunkId the chunk id to check with the id of this chunk.
-	 * @return {@code true} if ids match.
-	 */
-	public boolean verify(int fileId, int chunkId) {
-		return this.fileId == fileId || this.chunkId == chunkId;
-	}
-	
 	public int getNextChunkId() {
 		return nextChunkId;
 	}
@@ -75,22 +64,36 @@ public final class DataChunk {
 	}
 	
 	/**
-	 * Parses a {@link DataChunk} from the given {@link ReadOnlyBuffer}.
+	 * Decodes a {@link DataChunk} from the given {@link ReadOnlyBuffer}.
 	 *
-	 * @param dataBuffer the data buffer to parse from.
+	 * @param dataBuffer the data buffer to decode from.
 	 * @param fileSize the size of the file the chunk belongs to, in bytes.
+	 * @param expectedFileId if this doesn't match with decoded fileId exception is thrown.
+	 * @param expectedChunkId if this doesn't match with decoded chunkId exception is thrown.
 	 * @return a {@link DataChunk} instance.
 	 */
-	static DataChunk parse(ReadOnlyBuffer dataBuffer, int fileSize) {
-		int fileId = dataBuffer.getUnsignedShort();
-		int partId = dataBuffer.getUnsignedShort();
-		int nextPartId = dataBuffer.getUnsigned24BitInt();
+	static DataChunk decode(ReadOnlyBuffer dataBuffer, int fileSize, int expectedFileId, int expectedChunkId) {
+		int actualFileId = dataBuffer.getUnsignedShort();
+		int actualChunkId = dataBuffer.getUnsignedShort();
+		int nextChunkId = dataBuffer.getUnsigned24BitInt();
 		int dataType = dataBuffer.getUnsigned();
 		
-		int remainder = fileSize % DATA_CHUNK_BODY_SIZE;
-		int bytesToRead = (partId + 1) * DATA_CHUNK_BODY_SIZE > fileSize ? remainder : DataChunk.DATA_CHUNK_BODY_SIZE;
+		if (nextChunkId < 0 || nextChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
+			throw new RuntimeException("Invalid Index format! Invalid nextChunkId");
+		}
 		
-		return new DataChunk(fileId, partId, nextPartId, dataType, dataBuffer.getBytes(bytesToRead));
+		if (expectedFileId != actualFileId) {
+			throw new RuntimeException("Invalid Index format! Incorrect expectedFileId");
+		}
+		
+		if (expectedChunkId != actualChunkId) {
+			throw new RuntimeException("Invalid Index format! Incorrect expectedChunkId");
+		}
+		
+		int remainder = fileSize % DATA_CHUNK_BODY_SIZE;
+		int bytesToRead = (actualChunkId + 1) * DATA_CHUNK_BODY_SIZE > fileSize ? remainder : DataChunk.DATA_CHUNK_BODY_SIZE;
+		
+		return new DataChunk(actualFileId, actualChunkId, nextChunkId, dataType, dataBuffer.getBytes(bytesToRead));
 	}
 	
 }
