@@ -41,7 +41,12 @@ public final class FileStore {
 	 * @throws IOException
 	 */
 	public static FileStore load(Path cacheDirectory) throws IOException {
+		if (!Files.isDirectory(cacheDirectory)) {
+			throw new RuntimeException(cacheDirectory.toString() + ": Invalid path specified, must be a directory containing data and index files.");
+		}
+		
 		Path dataPath = cacheDirectory.resolve("main_file_cache.dat");
+		
 		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.wrap(Files.readAllBytes(dataPath));
 		
 		Stream<Path> indexFiles = Files.list(cacheDirectory).filter(p -> p.toString().contains("idx"));
