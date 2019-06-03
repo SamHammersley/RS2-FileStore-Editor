@@ -64,6 +64,7 @@ public class Index implements Iterable<byte[]> {
 			final int initialChunkId = indexBuffer.getUnsigned24BitInt();
 			
 			if (initialChunkId <= 0 || initialChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
+				entries.add(new byte[0]);
 				continue;
 			}
 			

@@ -32,6 +32,10 @@ public final class FileStore {
 		return indices[index];
 	}
 	
+	public Index[] getIndices() {
+		return indices;
+	}
+	
 	/**
 	 * Gets all file store data from the files in a given directory. If the necessary files do not exist
 	 * {@link NoSuchFileException} will be thrown.
