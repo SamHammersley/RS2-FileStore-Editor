@@ -63,6 +63,10 @@ public class Index implements Iterable<byte[]> {
 			final int fileSize = indexBuffer.getUnsigned24BitInt();
 			final int initialChunkId = indexBuffer.getUnsigned24BitInt();
 			
+			if (initialChunkId <= 0 || initialChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
+				continue;
+			}
+			
 			byte[] entry = new byte[fileSize];
 			
 			for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
