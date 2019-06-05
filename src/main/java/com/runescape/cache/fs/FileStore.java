@@ -2,6 +2,7 @@ package com.runescape.cache.fs;
 
 import com.runescape.io.ReadOnlyBuffer;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -37,28 +38,44 @@ public final class FileStore {
 	}
 	
 	/**
-	 * Gets all file store data from the files in a given directory. If the necessary files do not exist
-	 * {@link NoSuchFileException} will be thrown.
+	 * Validates the given fileStoreDirectory and then gets all file store data from the files in the directory, if valid.
 	 *
-	 * @param cacheDirectory the directory in which the local file store files reside.
+	 * @param fileStoreDirectory the directory in which the local file store files reside.
 	 * @return a {@link FileStore} instance containing data for the local file store.
+	 * @throws IOException where the given fileStoreDirectory is not a directory.
+	 */
+	static FileStore load(Path fileStoreDirectory) throws IOException {
+		Path dataPath = validCachePath(fileStoreDirectory);
+
+		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.fromPath(dataPath);
+		
+		Stream<Index> indices = Files
+				.list(fileStoreDirectory)
+				.filter(p -> p.toString().contains("idx"))
+				.map(p -> Index.decode(ReadOnlyBuffer.fromPath(p), dataBuffer));
+		
+		return new FileStore(indices.toArray(Index[]::new));
+	}
+	
+	/**
+	 * Validates the given {@link Path} fileStoreDirectory.
+	 *
+	 * @param fileStoreDirectory the path to the directory containing the file store.
+	 * @return {@link Path} to the data file of the file store.
 	 * @throws IOException
 	 */
-	public static FileStore load(Path cacheDirectory) throws IOException {
-		if (!Files.isDirectory(cacheDirectory)) {
-			throw new RuntimeException(cacheDirectory.toString() + ": Invalid path specified, must be a directory containing data and index files.");
+	private static Path validCachePath(Path fileStoreDirectory) throws IOException {
+		if (!Files.isDirectory(fileStoreDirectory)) {
+			throw new IOException(fileStoreDirectory.toString() + ": Invalid path specified, must be a directory");
 		}
 		
-		Path dataPath = cacheDirectory.resolve("main_file_cache.dat");
+		Path dataPath = fileStoreDirectory.resolve("main_file_cache.dat");
 		
-		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.wrap(Files.readAllBytes(dataPath));
+		if (Files.notExists(dataPath)) {
+			throw new FileNotFoundException(fileStoreDirectory.toString() + ": Invalid path specified, must contain data and index files.");
+		}
 		
-		Stream<ReadOnlyBuffer> indexFiles = Files
-				.list(cacheDirectory)
-				.filter(p -> p.toString().contains("idx"))
-				.map(ReadOnlyBuffer::fromPath);
-		
-		return new FileStore(indexFiles.map(indexBuffer -> Index.decode(indexBuffer, dataBuffer)).toArray(Index[]::new));
+		return dataPath;
 	}
 	
 }
