@@ -3,32 +3,43 @@ package com.runescape.cache.fs;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represents an entry, file, stored in an {@link Index} of some {@link FileStore}.
+ */
 public final class IndexEntry {
 	
+	/**
+	 * Represents an empty entry in an index.
+	 */
 	public static final IndexEntry EMPTY_ENTRY = new IndexEntry(0, 0, Collections.emptyList());
 	
-	private final int length;
+	/**
+	 * The file size of this entry in bytes.
+	 */
+	private final int fileSize;
 	
+	/**
+	 *  The position, in the data file, of the first chunk for this entry.
+	 */
 	private final int initialChunkPosition;
 	
+	/**
+	 * All the {@link DataChunk}s that make up the file this represents.
+	 */
 	private final List<DataChunk> data;
 	
-	public IndexEntry(int length, int initialChunkPosition, List<DataChunk> data) {
-		this.length = length;
+	public IndexEntry(int fileSize, int initialChunkPosition, List<DataChunk> data) {
+		this.fileSize = fileSize;
 		this.initialChunkPosition = initialChunkPosition;
 		this.data = data;
 	}
 	
-	public int getLength() {
-		return length;
+	public int getFileSize() {
+		return fileSize;
 	}
 	
 	public int getInitialChunkPosition() {
 		return initialChunkPosition;
-	}
-	
-	public List<DataChunk> getData() {
-		return data;
 	}
 	
 	@Override
@@ -39,7 +50,7 @@ public final class IndexEntry {
 		
 		IndexEntry other = (IndexEntry) object;
 		
-		return length == other.length && initialChunkPosition == other.initialChunkPosition && data.equals(other.data);
+		return fileSize == other.fileSize && initialChunkPosition == other.initialChunkPosition && data.equals(other.data);
 	}
 	
 }
