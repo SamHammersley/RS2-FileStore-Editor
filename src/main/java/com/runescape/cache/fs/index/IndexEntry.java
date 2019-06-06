@@ -1,4 +1,6 @@
-package com.runescape.cache.fs;
+package com.runescape.cache.fs.index;
+
+import com.runescape.cache.fs.FileStore;
 
 import java.util.Collections;
 import java.util.List;

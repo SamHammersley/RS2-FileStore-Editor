@@ -1,11 +1,11 @@
 package com.runescape.cache.fs;
 
+import com.runescape.cache.fs.index.Index;
 import com.runescape.io.ReadOnlyBuffer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 

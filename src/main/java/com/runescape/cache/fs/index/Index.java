@@ -1,4 +1,4 @@
-package com.runescape.cache.fs;
+package com.runescape.cache.fs.index;
 
 import com.runescape.io.ReadOnlyBuffer;
 
@@ -100,7 +100,7 @@ public class Index implements Iterable<IndexEntry> {
 	 * @param dataBuffer  the buffer containing all entry data.
 	 * @return an instance of {@link Index}.
 	 */
-	static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
+	public static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
 		final List<IndexEntry> entries = new ArrayList<>();
 		
 		int totalSize = 0;

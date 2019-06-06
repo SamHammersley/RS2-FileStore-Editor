@@ -1,11 +1,10 @@
-package com.runescape.cache.fs;
+package com.runescape.cache.fs.index;
 
 import com.runescape.io.ReadOnlyBuffer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -83,7 +82,30 @@ public final class DataChunk {
 				&& dataType == other.dataType
 				&& Arrays.equals(data, other.data);
 	}
-	
+
+	/**
+	 * Encodes this {@link DataChunk} in a byte array.
+	 *
+	 * @return a byte array representation of this data chunk
+	 * @throws IOException
+	 */
+	public byte[] encode() throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(DATA_CHUNK_HEADER_SIZE + data.length);
+		DataOutputStream dos = new DataOutputStream(baos);
+
+		dos.writeShort(fileId);
+		dos.writeShort(chunkId);
+
+		dos.writeShort(nextChunkId >> 8);
+		dos.writeByte(nextChunkId & 0xFF);
+
+		dos.writeByte(dataType);
+
+		dos.write(data, 0, data.length);
+		
+		return baos.toByteArray();
+	}
+
 	/**
 	 * Decodes a {@link DataChunk} from the given {@link ReadOnlyBuffer}.
 	 *
@@ -98,40 +120,23 @@ public final class DataChunk {
 		int actualChunkId = dataBuffer.getUnsignedShort();
 		int nextChunkId = dataBuffer.getUnsigned24BitInt();
 		int dataType = dataBuffer.getUnsigned();
-		
+
 		if (nextChunkId < 0 || nextChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
 			throw new RuntimeException("Invalid Index format! Invalid nextChunkId");
 		}
-		
+
 		if (expectedFileId != actualFileId) {
 			throw new RuntimeException("Invalid Index format! Incorrect expectedFileId");
 		}
-		
+
 		if (expectedChunkId != actualChunkId) {
 			throw new RuntimeException("Invalid Index format! Incorrect expectedChunkId");
 		}
-		
+
 		int remainder = fileSize % DATA_CHUNK_BODY_SIZE;
 		int bytesToRead = (actualChunkId + 1) * DATA_CHUNK_BODY_SIZE > fileSize ? remainder : DataChunk.DATA_CHUNK_BODY_SIZE;
-		
+
 		return new DataChunk(actualFileId, actualChunkId, nextChunkId, dataType, dataBuffer.getBytes(bytesToRead));
 	}
-	
-	static byte[] encode(DataChunk dataChunk) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream(DATA_CHUNK_HEADER_SIZE + dataChunk.data.length);
-		DataOutputStream dos = new DataOutputStream(baos);
 
-		dos.writeShort(dataChunk.fileId);
-		dos.writeShort(dataChunk.chunkId);
-
-		dos.writeShort(dataChunk.nextChunkId >> 8);
-		dos.writeByte(dataChunk.nextChunkId & 0xFF);
-
-		dos.writeByte(dataChunk.dataType);
-
-		dos.write(dataChunk.data, 0, dataChunk.data.length);
-		
-		return baos.toByteArray();
-	}
-	
 }
