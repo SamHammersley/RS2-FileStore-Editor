@@ -11,7 +11,7 @@ import java.util.List;
  * in the data file and the size of the file stored. Instances of this class contain the data, of a file, corresponding
  * to an entry in the index that an instance represents.
  */
-public class Index implements Iterable<byte[]> {
+public class Index implements Iterable<IndexEntry> {
 	
 	/**
 	 * The size of an index entry in bytes.
@@ -21,10 +21,21 @@ public class Index implements Iterable<byte[]> {
 	/**
 	 * List of entries that reside in this index.
 	 */
-	private final List<byte[]> entries;
+	private final List<IndexEntry> entries;
 	
-	public Index(List<byte[]> entries) {
+	/**
+	 * The length of this index in bytes.
+	 */
+	private final int length;
+	
+	/**
+	 * Denotes whether this index has been changed.
+	 */
+	private boolean indexChanged = false;
+	
+	public Index(List<IndexEntry> entries, int length) {
 		this.entries = entries;
+		this.length = length;
 	}
 	
 	/**
@@ -33,8 +44,33 @@ public class Index implements Iterable<byte[]> {
 	 * @param index the index of the entry.
 	 * @return
 	 */
-	public byte[] getEntry(int index) {
+	public IndexEntry getEntry(int index) {
 		return entries.get(index);
+	}
+	
+	/**
+	 * Sets the entry at the given index to the specified entry. Sets {@link #indexChanged} to true,
+	 * if the specified {@link IndexEntry} is different from the previous.
+	 *
+	 * @param index the index to place the given entry.
+	 * @param entry the entry to replace the entry at the given index.
+	 */
+	public void setEntry(int index, IndexEntry entry) {
+		IndexEntry previous = entries.set(index, entry);
+		
+		if (!entry.equals(previous)) {
+			indexChanged = true;
+		}
+	}
+	
+	/**
+	 * Adds the specified {@link IndexEntry} to {@link #entries}.
+	 *
+	 * @param entry the entry to add.
+	 * @return {@link List#add}
+	 */
+	public boolean addEntry(IndexEntry entry) {
+		return entries.add(entry);
 	}
 	
 	/**
@@ -44,8 +80,16 @@ public class Index implements Iterable<byte[]> {
 		return entries.size();
 	}
 	
+	public boolean hasChanged() {
+		return indexChanged;
+	}
+	
+	public int getLength() {
+		return length;
+	}
+	
 	@Override
-	public Iterator<byte[]> iterator() {
+	public Iterator<IndexEntry> iterator() {
 		return entries.iterator();
 	}
 	
@@ -56,26 +100,28 @@ public class Index implements Iterable<byte[]> {
 	 * @param dataBuffer  the buffer containing all entry data.
 	 * @return an instance of {@link Index}.
 	 */
-	public static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
-		final List<byte[]> entries = new ArrayList<>();
+	static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
+		final List<IndexEntry> entries = new ArrayList<>();
+		
+		int totalSize = 0;
 		
 		for (int fileId = 0; indexBuffer.hasRemainingBytes(INDEX_ENTRY_SIZE); fileId++) {
 			final int fileSize = indexBuffer.getUnsigned24BitInt();
 			final int initialChunkId = indexBuffer.getUnsigned24BitInt();
 			
 			if (initialChunkId <= 0 || initialChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
-				entries.add(new byte[0]);
+				entries.add(IndexEntry.EMPTY_ENTRY);
 				continue;
 			}
 			
-			byte[] entry = new byte[fileSize];
+			List<DataChunk> entryData = new ArrayList<>((fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1);
 			
 			for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
 				dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
 				
 				DataChunk dataChunk = DataChunk.decode(dataBuffer, fileSize, fileId, chunkId);
 				
-				System.arraycopy(dataChunk.getData(), 0, entry, chunkId * DataChunk.DATA_CHUNK_BODY_SIZE, dataChunk.getData().length);
+				entryData.add(dataChunk);
 				
 				final int nextChunkId = dataChunk.getNextChunkId();
 				if (nextChunkId == 0) {
@@ -84,10 +130,12 @@ public class Index implements Iterable<byte[]> {
 				
 				currentChunkIndex = nextChunkId;
 			}
+			totalSize += fileSize;
 			
-			entries.add(entry);
+			entries.add(new IndexEntry(fileSize, initialChunkId, entryData));
 		}
 		
-		return new Index(entries);
+		return new Index(entries, totalSize);
 	}
+
 }
