@@ -3,6 +3,9 @@ package com.runescape.cache.fs;
 import com.runescape.io.ReadOnlyBuffer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -114,14 +117,19 @@ public final class DataChunk {
 		return new DataChunk(actualFileId, actualChunkId, nextChunkId, dataType, dataBuffer.getBytes(bytesToRead));
 	}
 	
-	static byte[] encode(DataChunk dataChunk) {
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream(DATA_CHUNK_HEADER_SIZE + dataChunk.data.length);
-		
-		baos.write(dataChunk.fileId);
-		baos.write(dataChunk.chunkId);
-		baos.write(dataChunk.nextChunkId);
-		baos.write(dataChunk.dataType);
-		baos.write(dataChunk.data, 0, dataChunk.data.length);
+	static byte[] encode(DataChunk dataChunk) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(DATA_CHUNK_HEADER_SIZE + dataChunk.data.length);
+		DataOutputStream dos = new DataOutputStream(baos);
+
+		dos.writeShort(dataChunk.fileId);
+		dos.writeShort(dataChunk.chunkId);
+
+		dos.writeShort(dataChunk.nextChunkId >> 8);
+		dos.writeByte(dataChunk.nextChunkId & 0xFF);
+
+		dos.writeByte(dataChunk.dataType);
+
+		dos.write(dataChunk.data, 0, dataChunk.data.length);
 		
 		return baos.toByteArray();
 	}
