@@ -2,6 +2,9 @@ package com.runescape.cache.fs;
 
 import com.runescape.io.ReadOnlyBuffer;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+
 /**
  * Represents a chunk of data from a file stored in a local file store.
  */
@@ -63,6 +66,21 @@ public final class DataChunk {
 		return data;
 	}
 	
+	@Override
+	public boolean equals(Object object) {
+		if (!(object instanceof DataChunk)) {
+			return false;
+		}
+		
+		DataChunk other = (DataChunk) object;
+		
+		return fileId == other.fileId
+				&& chunkId == other.chunkId
+				&& nextChunkId == other.nextChunkId
+				&& dataType == other.dataType
+				&& Arrays.equals(data, other.data);
+	}
+	
 	/**
 	 * Decodes a {@link DataChunk} from the given {@link ReadOnlyBuffer}.
 	 *
@@ -94,6 +112,18 @@ public final class DataChunk {
 		int bytesToRead = (actualChunkId + 1) * DATA_CHUNK_BODY_SIZE > fileSize ? remainder : DataChunk.DATA_CHUNK_BODY_SIZE;
 		
 		return new DataChunk(actualFileId, actualChunkId, nextChunkId, dataType, dataBuffer.getBytes(bytesToRead));
+	}
+	
+	static byte[] encode(DataChunk dataChunk) {
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream(DATA_CHUNK_HEADER_SIZE + dataChunk.data.length);
+		
+		baos.write(dataChunk.fileId);
+		baos.write(dataChunk.chunkId);
+		baos.write(dataChunk.nextChunkId);
+		baos.write(dataChunk.dataType);
+		baos.write(dataChunk.data, 0, dataChunk.data.length);
+		
+		return baos.toByteArray();
 	}
 	
 }
