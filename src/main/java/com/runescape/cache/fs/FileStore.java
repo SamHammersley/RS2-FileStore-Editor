@@ -1,6 +1,7 @@
 package com.runescape.cache.fs;
 
 import com.runescape.cache.fs.index.Index;
+import com.runescape.cache.fs.index.IndexDecoder;
 import com.runescape.io.ReadOnlyBuffer;
 
 import java.io.FileNotFoundException;
@@ -33,10 +34,6 @@ public final class FileStore {
 		return indices[index];
 	}
 	
-	public Index[] getIndices() {
-		return indices;
-	}
-	
 	/**
 	 * Validates the given fileStoreDirectory and then gets all file store data from the files in the directory, if valid.
 	 *
@@ -44,19 +41,20 @@ public final class FileStore {
 	 * @return a {@link FileStore} instance containing data for the local file store.
 	 * @throws IOException where the given fileStoreDirectory is not a directory.
 	 */
-	static FileStore load(Path fileStoreDirectory) throws IOException {
+	public static FileStore load(Path fileStoreDirectory) throws IOException {
 		Path dataPath = validCachePath(fileStoreDirectory);
 
 		ReadOnlyBuffer dataBuffer = ReadOnlyBuffer.fromPath(dataPath);
-		
+		IndexDecoder indexDecoder = new IndexDecoder(dataBuffer);
+
 		Stream<Index> indices = Files
 				.list(fileStoreDirectory)
 				.filter(p -> p.toString().contains("idx"))
-				.map(p -> Index.decode(ReadOnlyBuffer.fromPath(p), dataBuffer));
+				.map(p -> indexDecoder.decode(ReadOnlyBuffer.fromPath(p)));
 		
 		return new FileStore(indices.toArray(Index[]::new));
 	}
-	
+
 	/**
 	 * Validates the given {@link Path} fileStoreDirectory.
 	 *

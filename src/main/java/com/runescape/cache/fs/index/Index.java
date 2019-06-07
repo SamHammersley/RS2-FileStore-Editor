@@ -1,8 +1,7 @@
 package com.runescape.cache.fs.index;
 
-import com.runescape.io.ReadOnlyBuffer;
+import com.runescape.cache.fs.index.entry.IndexEntry;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,11 +11,6 @@ import java.util.List;
  * to an entry in the index that an instance represents.
  */
 public class Index implements Iterable<IndexEntry> {
-	
-	/**
-	 * The size of an index entry in bytes.
-	 */
-	private static final int INDEX_ENTRY_SIZE = 6;
 	
 	/**
 	 * List of entries that reside in this index.
@@ -32,7 +26,7 @@ public class Index implements Iterable<IndexEntry> {
 	 * Denotes whether this index has been changed.
 	 */
 	private boolean indexChanged = false;
-	
+
 	public Index(List<IndexEntry> entries, int length) {
 		this.entries = entries;
 		this.length = length;
@@ -50,7 +44,7 @@ public class Index implements Iterable<IndexEntry> {
 	
 	/**
 	 * Sets the entry at the given index to the specified entry. Sets {@link #indexChanged} to true,
-	 * if the specified {@link IndexEntry} is different from the previous.
+	 * if the specified entry is different from the previous.
 	 *
 	 * @param index the index to place the given entry.
 	 * @param entry the entry to replace the entry at the given index.
@@ -64,7 +58,7 @@ public class Index implements Iterable<IndexEntry> {
 	}
 	
 	/**
-	 * Adds the specified {@link IndexEntry} to {@link #entries}.
+	 * Adds the specified entry to {@link #entries}.
 	 *
 	 * @param entry the entry to add.
 	 * @return {@link List#add}
@@ -91,51 +85,6 @@ public class Index implements Iterable<IndexEntry> {
 	@Override
 	public Iterator<IndexEntry> iterator() {
 		return entries.iterator();
-	}
-	
-	/**
-	 * Decodes an index from the given path and buffer (which contains the raw data for files in this index).
-	 *
-	 * @param indexBuffer the buffer containing index data.
-	 * @param dataBuffer  the buffer containing all entry data.
-	 * @return an instance of {@link Index}.
-	 */
-	public static Index decode(ReadOnlyBuffer indexBuffer, ReadOnlyBuffer dataBuffer) {
-		final List<IndexEntry> entries = new ArrayList<>();
-		
-		int totalSize = 0;
-		
-		for (int fileId = 0; indexBuffer.hasRemainingBytes(INDEX_ENTRY_SIZE); fileId++) {
-			final int fileSize = indexBuffer.getUnsigned24BitInt();
-			final int initialChunkId = indexBuffer.getUnsigned24BitInt();
-			
-			if (initialChunkId <= 0 || initialChunkId > dataBuffer.length() / DataChunk.DATA_CHUNK_BODY_SIZE) {
-				entries.add(IndexEntry.EMPTY_ENTRY);
-				continue;
-			}
-			
-			List<DataChunk> entryData = new ArrayList<>((fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1);
-			
-			for (int chunkId = 0, currentChunkIndex = initialChunkId; chunkId < (fileSize / DataChunk.DATA_CHUNK_BODY_SIZE) + 1; chunkId++) {
-				dataBuffer.seek(currentChunkIndex * DataChunk.DATA_CHUNK_SIZE);
-				
-				DataChunk dataChunk = DataChunk.decode(dataBuffer, fileSize, fileId, chunkId);
-				
-				entryData.add(dataChunk);
-				
-				final int nextChunkId = dataChunk.getNextChunkId();
-				if (nextChunkId == 0) {
-					break;
-				}
-				
-				currentChunkIndex = nextChunkId;
-			}
-			totalSize += fileSize;
-			
-			entries.add(new IndexEntry(fileSize, initialChunkId, entryData));
-		}
-		
-		return new Index(entries, totalSize);
 	}
 
 }

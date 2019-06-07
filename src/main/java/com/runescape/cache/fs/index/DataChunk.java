@@ -67,6 +67,10 @@ public final class DataChunk {
 	public byte[] getData() {
 		return data;
 	}
+
+	public int getDataType() {
+		return dataType;
+	}
 	
 	@Override
 	public boolean equals(Object object) {
