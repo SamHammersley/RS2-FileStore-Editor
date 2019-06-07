@@ -14,7 +14,9 @@ import java.util.stream.Stream;
  * Represents a JaGeX local file store.
  */
 public final class FileStore {
-	
+
+	private static final String INDEX_FILE_NAME_REGEX = "main_file_cache.idx\\d$";
+
 	/**
 	 * The indices in this file store.
 	 */
@@ -23,7 +25,7 @@ public final class FileStore {
 	private FileStore(Index[] indices) {
 		this.indices = indices;
 	}
-	
+
 	/**
 	 * Gets the index at the specified index from FileStore#indices.
 	 *
@@ -49,10 +51,24 @@ public final class FileStore {
 
 		Stream<Index> indices = Files
 				.list(fileStoreDirectory)
-				.filter(p -> p.toString().contains("idx"))
-				.map(p -> indexDecoder.decode(ReadOnlyBuffer.fromPath(p)));
+				.filter(p -> p.getFileName().toString().matches(INDEX_FILE_NAME_REGEX))
+				.map(p -> decodeFromPath(p, indexDecoder));
 		
 		return new FileStore(indices.toArray(Index[]::new));
+	}
+
+	/**
+	 * Decodes {@link Index} from the given path.
+	 *
+	 * @param path the path to decode index from.
+	 * @param indexDecoder for decoding the bytes from the given path.
+	 * @return an instance of {@link Index} representing the index from the file.
+	 */
+	private static Index decodeFromPath(Path path, IndexDecoder indexDecoder) {
+		String extension = path.getFileName().toString();
+		int id = Integer.parseInt(extension.substring(extension.length() - 1));
+
+		return indexDecoder.decode(id, ReadOnlyBuffer.fromPath(path));
 	}
 
 	/**
