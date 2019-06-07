@@ -2,6 +2,7 @@ package com.runescape.cache.fs.index;
 
 import com.runescape.cache.fs.index.entry.IndexEntry;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,7 +12,12 @@ import java.util.List;
  * to an entry in the index that an instance represents.
  */
 public class Index implements Iterable<IndexEntry> {
-	
+
+	/**
+	 * The identifier of this index.
+	 */
+	private final int id;
+
 	/**
 	 * List of entries that reside in this index.
 	 */
@@ -27,11 +33,16 @@ public class Index implements Iterable<IndexEntry> {
 	 */
 	private boolean indexChanged = false;
 
-	public Index(List<IndexEntry> entries, int length) {
+	public Index(int id, List<IndexEntry> entries, int length) {
+		this.id = id;
 		this.entries = entries;
 		this.length = length;
 	}
-	
+
+	public int getId() {
+		return id;
+	}
+
 	/**
 	 * Gets a particular entry in this index.
 	 *
@@ -41,7 +52,16 @@ public class Index implements Iterable<IndexEntry> {
 	public IndexEntry getEntry(int index) {
 		return entries.get(index);
 	}
-	
+
+	/**
+	 * Gets the list of entries.
+	 *
+	 * @return {@link #entries}
+	 */
+	public List<IndexEntry> getEntries() {
+		return Collections.unmodifiableList(entries);
+	}
+
 	/**
 	 * Sets the entry at the given index to the specified entry. Sets {@link #indexChanged} to true,
 	 * if the specified entry is different from the previous.

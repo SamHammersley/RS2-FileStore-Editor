@@ -28,10 +28,11 @@ public final class IndexDecoder {
     /**
      * Decodes an index from the given path and buffer (which contains the raw data for files in this index).
      *
+     * @param indexId the id of the index to decode.
      * @param indexBuffer the buffer containing index data.
      * @return an instance of {@link Index}.
      */
-    public Index decode(ReadOnlyBuffer indexBuffer) {
+    public Index decode(int indexId, ReadOnlyBuffer indexBuffer) {
         final List<IndexEntry> entries = new ArrayList<>();
 
         int totalSize = 0;
@@ -64,10 +65,10 @@ public final class IndexDecoder {
             }
             totalSize += fileSize;
 
-            entries.add(new IndexEntry(fileSize, initialChunkId, entryData));
+            entries.add(new IndexEntry(indexId, fileId, fileSize, initialChunkId, entryData));
         }
 
-        return new Index(entries, totalSize);
+        return new Index(indexId, entries, totalSize);
     }
 
 }
