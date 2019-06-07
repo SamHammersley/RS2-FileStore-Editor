@@ -51,6 +51,7 @@ public final class FileStore {
 
 		Stream<Index> indices = Files
 				.list(fileStoreDirectory)
+				.sorted()
 				.filter(p -> p.getFileName().toString().matches(INDEX_FILE_NAME_REGEX))
 				.map(p -> decodeFromPath(p, indexDecoder));
 		
