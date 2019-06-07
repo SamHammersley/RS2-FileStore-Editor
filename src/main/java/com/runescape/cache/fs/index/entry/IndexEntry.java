@@ -67,7 +67,7 @@ public final class IndexEntry {
 	}
 
 	public boolean isEmpty() {
-		return id == -1;
+		return this.equals(EMPTY_ENTRY);
 	}
 	
 	@Override
@@ -78,7 +78,9 @@ public final class IndexEntry {
 		
 		IndexEntry other = (IndexEntry) object;
 		
-		return fileSize == other.fileSize && initialChunkPosition == other.initialChunkPosition && data.equals(other.data);
+		return id == other.id && indexId == other.indexId
+				&& fileSize == other.fileSize && initialChunkPosition == other.initialChunkPosition
+				&& data.equals(other.data);
 	}
 
 	@Override
