@@ -1,8 +1,8 @@
-package com.runescape.cache.fs.index.entry;
+package rs2.filestore.editor.cache.fs.index.entry;
 
-import com.runescape.cache.fs.FileStore;
-import com.runescape.cache.fs.index.DataChunk;
-import com.runescape.cache.fs.index.Index;
+import rs2.filestore.editor.cache.fs.FileStore;
+import rs2.filestore.editor.cache.fs.index.DataChunk;
+import rs2.filestore.editor.cache.fs.index.Index;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,8 +1,8 @@
-package com.runescape.cache.fs;
+package rs2.filestore.editor.cache.fs;
 
-import com.runescape.cache.fs.index.Index;
-import com.runescape.cache.fs.index.IndexDecoder;
-import com.runescape.io.ReadOnlyBuffer;
+import rs2.filestore.editor.cache.fs.index.Index;
+import rs2.filestore.editor.cache.fs.index.IndexDecoder;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

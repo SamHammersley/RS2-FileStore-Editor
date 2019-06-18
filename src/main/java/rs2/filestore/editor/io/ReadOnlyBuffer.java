@@ -1,4 +1,4 @@
-package com.runescape.io;
+package rs2.filestore.editor.io;
 
 import java.io.IOException;
 import java.nio.file.Files;

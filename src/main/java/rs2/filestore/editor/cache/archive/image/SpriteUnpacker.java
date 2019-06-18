@@ -1,8 +1,7 @@
-package com.runescape.cache.archive.image;
+package rs2.filestore.editor.cache.archive.image;
 
-import com.runescape.cache.archive.Archive;
-import com.runescape.cache.archive.image.Sprite.SpriteBuilder;
-import com.runescape.io.ReadOnlyBuffer;
+import rs2.filestore.editor.cache.archive.Archive;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 public class SpriteUnpacker {
 
@@ -10,7 +9,7 @@ public class SpriteUnpacker {
 		ReadOnlyBuffer imageData = archive.getEntry(entryName + ".dat").getBuffer();
 		ReadOnlyBuffer metaData = archive.getEntry("index.dat").getBuffer();
 		
-		SpriteBuilder builder = new SpriteBuilder();
+		Sprite.SpriteBuilder builder = new Sprite.SpriteBuilder();
 		
 		metaData.advance(imageData.getUnsignedShort());
 		

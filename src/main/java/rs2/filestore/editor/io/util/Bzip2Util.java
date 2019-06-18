@@ -1,4 +1,4 @@
-package com.runescape.io.util;
+package rs2.filestore.editor.io.util;
 
 import java.io.*;
 import java.util.Arrays;

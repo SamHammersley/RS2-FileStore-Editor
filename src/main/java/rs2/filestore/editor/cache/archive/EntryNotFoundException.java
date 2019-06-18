@@ -1,4 +1,4 @@
-package com.runescape.cache.archive;
+package rs2.filestore.editor.cache.archive;
 
 import java.util.NoSuchElementException;
 

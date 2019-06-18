@@ -1,12 +1,12 @@
-package com.runescape.cache.archive;
+package rs2.filestore.editor.cache.archive;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 
-import com.runescape.io.ReadOnlyBuffer;
-import com.runescape.io.util.Bzip2Util;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
+import rs2.filestore.editor.io.util.Bzip2Util;
 
 public class ArchiveCodec {
 

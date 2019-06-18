@@ -1,6 +1,6 @@
-package com.runescape.cache.fs.index;
+package rs2.filestore.editor.cache.fs.index;
 
-import com.runescape.io.ReadOnlyBuffer;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

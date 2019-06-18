@@ -1,8 +1,8 @@
-package com.runescape.cache.archive.version;
+package rs2.filestore.editor.cache.archive.version;
 
-import com.runescape.cache.archive.Archive;
-import com.runescape.cache.archive.ArchiveEntry;
-import com.runescape.io.ReadOnlyBuffer;
+import rs2.filestore.editor.cache.archive.Archive;
+import rs2.filestore.editor.cache.archive.ArchiveEntry;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 public final class VersionListArchiveUnpacker {
 	

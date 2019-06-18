@@ -1,6 +1,6 @@
-package com.runescape.cache.fs.index;
+package rs2.filestore.editor.cache.fs.index;
 
-import com.runescape.cache.fs.index.entry.IndexEntry;
+import rs2.filestore.editor.cache.fs.index.entry.IndexEntry;
 
 import java.util.Collections;
 import java.util.Iterator;

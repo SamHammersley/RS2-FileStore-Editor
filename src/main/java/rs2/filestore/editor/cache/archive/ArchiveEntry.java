@@ -1,6 +1,6 @@
-package com.runescape.cache.archive;
+package rs2.filestore.editor.cache.archive;
 
-import com.runescape.io.ReadOnlyBuffer;
+import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 /**
  * Represents a file/entry stored in an {@link Archive} container.

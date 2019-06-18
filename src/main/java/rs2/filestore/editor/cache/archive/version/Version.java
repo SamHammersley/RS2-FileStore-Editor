@@ -1,4 +1,4 @@
-package com.runescape.cache.archive.version;
+package rs2.filestore.editor.cache.archive.version;
 
 public final class Version {
 

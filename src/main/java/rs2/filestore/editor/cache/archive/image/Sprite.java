@@ -1,4 +1,4 @@
-package com.runescape.cache.archive.image;
+package rs2.filestore.editor.cache.archive.image;
 
 public final class Sprite {
 
