@@ -84,7 +84,7 @@ public class Index implements Iterable<IndexEntry> {
 	 * @return {@link List#add}
 	 */
 	public boolean addEntry(IndexEntry entry) {
-		return entries.add(entry);
+		return indexChanged = entries.add(entry);
 	}
 	
 	/**
