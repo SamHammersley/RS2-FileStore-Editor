@@ -4,6 +4,7 @@ import rs2.filestore.editor.cache.fs.FileStore;
 import rs2.filestore.editor.cache.fs.index.entry.IndexEntry;
 import rs2.filestore.editor.io.ReadOnlyBuffer;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,20 @@ public final class IndexDecoder {
     }
 
     /**
-     * Decodes an index from the given path and buffer (which contains the raw data for files in this index).
+     * Calls {@link #decode(int, ReadOnlyBuffer)} with the specified {@link Path}, as a {@link ReadOnlyBuffer}.
+     *
+     * @param path the path to the index file.
+     * @return an {@link Index} decoded from the index file and {@link #dataBuffer}.
+     */
+    public Index decode(Path path) {
+        String extension = path.getFileName().toString();
+        int id = Integer.parseInt(extension.substring(extension.length() - 1));
+
+        return decode(id, ReadOnlyBuffer.fromPath(path));
+    }
+
+    /**
+     * Decodes an index from the given buffer.
      *
      * @param indexId the id of the index to decode.
      * @param indexBuffer the buffer containing index data.

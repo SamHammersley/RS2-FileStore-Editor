@@ -53,23 +53,9 @@ public final class FileStore {
 				.list(fileStoreDirectory)
 				.sorted()
 				.filter(p -> p.getFileName().toString().matches(INDEX_FILE_NAME_REGEX))
-				.map(p -> decodeFromPath(p, indexDecoder));
+				.map(indexDecoder::decode);
 		
 		return new FileStore(indices.toArray(Index[]::new));
-	}
-
-	/**
-	 * Decodes {@link Index} from the given path.
-	 *
-	 * @param path the path to decode index from.
-	 * @param indexDecoder for decoding the bytes from the given path.
-	 * @return an instance of {@link Index} representing the index from the file.
-	 */
-	private static Index decodeFromPath(Path path, IndexDecoder indexDecoder) {
-		String extension = path.getFileName().toString();
-		int id = Integer.parseInt(extension.substring(extension.length() - 1));
-
-		return indexDecoder.decode(id, ReadOnlyBuffer.fromPath(path));
 	}
 
 	/**
