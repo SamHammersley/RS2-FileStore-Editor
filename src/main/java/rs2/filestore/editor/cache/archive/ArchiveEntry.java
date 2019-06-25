@@ -1,5 +1,6 @@
 package rs2.filestore.editor.cache.archive;
 
+import com.google.common.base.Objects;
 import rs2.filestore.editor.io.ReadOnlyBuffer;
 
 /**
@@ -59,11 +60,7 @@ public final class ArchiveEntry {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + buffer.hashCode();
-		result = prime * result + identifier;
-		return result;
+		return Objects.hashCode(buffer, identifier);
 	}
 
 	@Override
